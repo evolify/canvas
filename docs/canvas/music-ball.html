@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐节奏小球</title>
+    <style>
+        body { text-align: center; }
+        canvas { background: #eee; display: block; margin: auto; }
+    </style>
+</head>
+<body>
+    <audio id="audio" controls>
+        <source src="../../res/music/music.mp3" type="audio/mpeg">
+        你的浏览器不支持音频播放。
+    </audio>
+    <canvas id="gameCanvas" width="500" height="400"></canvas>
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const audio = document.getElementById("audio");
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+
+      const source = audioContext.createMediaElementSource(audio);
+      source.connect(analyser);
+      source.connect(audioContext.destination);
+
+      let ball = {
+          x: canvas.width / 2,
+          y: 50,
+          radius: 15,
+          dx: 2,
+          dy: 0,
+          gravity: 0.5,
+          energyLoss: 0.7
+      };
+
+      let paddles = [
+          { x: 50, y: 150, width: 80, height: 10, sound: new Audio("note1.mp3") },
+          { x: 200, y: 250, width: 100, height: 10, sound: new Audio("note2.mp3") },
+          { x: 350, y: 350, width: 120, height: 10, sound: new Audio("note3.mp3") },
+          { x: 100, y: 450, width: 90, height: 10, sound: new Audio("note4.mp3") }
+      ];
+
+      function drawBall() {
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+          ctx.fillStyle = "red";
+          ctx.fill();
+          ctx.closePath();
+      }
+
+      function drawPaddles() {
+          ctx.fillStyle = "blue";
+          paddles.forEach(paddle => {
+              ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+          });
+      }
+
+      function updateBall() {
+          let freqData = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(freqData);
+          let bass = freqData[1] / 255;
+          
+          ball.dy += ball.gravity + bass * 2;
+          ball.y += ball.dy;
+          ball.x += ball.dx;
+
+          paddles.forEach(paddle => {
+              if (ball.y + ball.radius >= paddle.y && ball.y - ball.radius <= paddle.y + paddle.height && 
+                  ball.x >= paddle.x && ball.x <= paddle.x + paddle.width) {
+                  ball.dy *= -ball.energyLoss;
+                  ball.y = paddle.y - ball.radius;
+                  paddle.sound.play();
+              }
+          });
+
+          if (ball.y + ball.radius > canvas.height) {
+              ball.dy = -Math.abs(ball.dy) * ball.energyLoss;
+              ball.y = canvas.height - ball.radius;
+          }
+          
+          if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+              ball.dx *= -1;
+          }
+      }
+
+      function draw() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          drawBall();
+          drawPaddles();
+          updateBall();
+          requestAnimationFrame(draw);
+      }
+
+      audio.onplay = () => {
+          audioContext.resume();
+          draw();
+      };
+  </script>
+</body>
+</html>

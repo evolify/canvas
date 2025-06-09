@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas</title>
+    <style>
+      :root {
+        background-color: #f7f7f7;
+      }
+      body {
+        text-align: center;
+      }
+      canvas {
+        background-color: #fff;
+        margin: 100px auto;
+        box-shadow: 1px 1px 5px -1px gray;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <script>
+      const canvas = document.querySelector("#canvas")
+
+      const ctx = canvas.getContext("2d")
+
+      const { width, height } = canvas
+
+      function clear() {
+        ctx.clearRect(0, 0, width, height)
+      }
+
+      function random() {
+        return parseInt(Math.random() * 255)
+      }
+
+      function color(red, green, blue, alpha = 1) {
+        return `rgba(${[red, green, blue, alpha].join(",")})`
+      }
+
+      function randomColor() {
+        return color(random(), random(), random(), 1)
+      }
+
+      function render(x, y, color) {
+        ctx.beginPath()
+        ctx.moveTo(200, 400) //起始点
+        ctx.bezierCurveTo(200, 200, x, y, 400, 400) // cx、cy 是控制点的坐标，x、y 是终点坐标
+        ctx.strokeStyle = color
+
+        ctx.moveTo(200 ,400)
+        ctx.lineTo(200, 200)
+        ctx.lineTo(x, y)
+        ctx.lineTo(400, 400)
+        ctx.stroke()
+      }
+
+      canvas.addEventListener("click", e => {
+        clear()
+        const { offsetX, offsetY } = e
+        render(offsetX, offsetY, randomColor())
+      })
+
+      canvas.addEventListener("mousemove", e => {
+        const { offsetX, offsetY } = e
+      })
+    </script>
+  </body>
+</html>

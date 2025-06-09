@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D俄罗斯方块</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .game-board {
+            border: 2px solid #4a4a6a;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        .game-info {
+            margin-left: 20px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            color: #fff;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
+            border-radius: 4px;
+            transition: all 0.1s ease;
+        }
+        .row {
+            display: flex;
+        }
+        .filled {
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateZ(0);
+        }
+        .color-0 { background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%); } /* I */
+        .color-1 { background: linear-gradient(135deg, #ffd60a 0%, #ffc300 100%); } /* O */
+        .color-2 { background: linear-gradient(135deg, #ff006e 0%, #d62828 100%); } /* T */
+        .color-3 { background: linear-gradient(135deg, #52b788 0%, #2d6a4f 100%); } /* L */
+        .color-4 { background: linear-gradient(135deg, #8338ec 0%, #5a189a 100%); } /* J */
+        .color-5 { background: linear-gradient(135deg, #ff9e00 0%, #ff7900 100%); } /* S */
+        .color-6 { background: linear-gradient(135deg, #ff477e 0%, #ff0054 100%); } /* Z */
+        
+        button {
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        h2 {
+            margin-top: 0;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 180, 216, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div>
+            <div id="board" class="game-board"></div>
+        </div>
+        <div class="game-info">
+            <h2>分数: <span id="score">0</span></h2>
+            <button id="startBtn">开始游戏</button>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_WIDTH = 10;
+        const BOARD_HEIGHT = 20;
+        let board = [];
+        let boardColors = [];
+        let currentPiece = null;
+        let score = 0;
+        let gameInterval = null;
+
+        const SHAPES = [
+            [[1, 1, 1, 1]], // I
+            [[1, 1], [1, 1]], // O
+            [[1, 1, 1], [0, 1, 0]], // T
+            [[1, 1, 1], [1, 0, 0]], // L
+            [[1, 1, 1], [0, 0, 1]], // J
+            [[1, 1, 0], [0, 1, 1]], // S
+            [[0, 1, 1], [1, 1, 0]]  // Z
+        ];
+
+        function initBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+            boardColors = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+            
+            for (let i = 0; i < BOARD_HEIGHT; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                for (let j = 0; j < BOARD_WIDTH; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    row.appendChild(cell);
+                }
+                boardElement.appendChild(row);
+            }
+        }
+
+        function createNewPiece() {
+            const shapeIndex = Math.floor(Math.random() * SHAPES.length);
+            const shape = SHAPES[shapeIndex];
+            currentPiece = {
+                shape,
+                x: Math.floor((BOARD_WIDTH - shape[0].length) / 2),
+                y: 0,
+                colorIndex: shapeIndex
+            };
+        }
+
+        function updateDisplay() {
+            const cells = document.getElementsByClassName('cell');
+            let index = 0;
+            
+            for (let cell of cells) {
+                cell.className = 'cell';
+            }
+
+            for (let i = 0; i < BOARD_HEIGHT; i++) {
+                for (let j = 0; j < BOARD_WIDTH; j++) {
+                    if (board[i][j]) {
+                        cells[index].className = `cell filled color-${boardColors[i][j]}`;
+                    }
+                    index++;
+                }
+            }
+
+            if (currentPiece) {
+                for (let i = 0; i < currentPiece.shape.length; i++) {
+                    for (let j = 0; j < currentPiece.shape[i].length; j++) {
+                        if (currentPiece.shape[i][j]) {
+                            const y = currentPiece.y + i;
+                            const x = currentPiece.x + j;
+                            if (y >= 0) {
+                                cells[y * BOARD_WIDTH + x].className = `cell filled color-${currentPiece.colorIndex}`;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function checkCollision(shape, x, y) {
+            for (let i = 0; i < shape.length; i++) {
+                for (let j = 0; j < shape[i].length; j++) {
+                    if (shape[i][j]) {
+                        const newY = y + i;
+                        const newX = x + j;
+                        if (newX < 0 || newX >= BOARD_WIDTH || newY >= BOARD_HEIGHT) return true;
+                        if (newY >= 0 && board[newY][newX]) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function fixPiece() {
+            for (let i = 0; i < currentPiece.shape.length; i++) {
+                for (let j = 0; j < currentPiece.shape[i].length; j++) {
+                    if (currentPiece.shape[i][j]) {
+                        const y = currentPiece.y + i;
+                        const x = currentPiece.x + j;
+                        if (y >= 0) {
+                            board[y][x] = 1;
+                            boardColors[y][x] = currentPiece.colorIndex;
+                        }
+                    }
+                }
+            }
+        }
+
+        function clearLines() {
+            for (let i = BOARD_HEIGHT - 1; i >= 0; i--) {
+                if (board[i].every(cell => cell === 1)) {
+                    board.splice(i, 1);
+                    boardColors.splice(i, 1);
+                    board.unshift(Array(BOARD_WIDTH).fill(0));
+                    boardColors.unshift(Array(BOARD_WIDTH).fill(0));
+                    score += 100;
+                    document.getElementById('score').textContent = score;
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (!currentPiece) {
+                createNewPiece();
+                if (checkCollision(currentPiece.shape, currentPiece.x, currentPiece.y)) {
+                    clearInterval(gameInterval);
+                    alert('游戏结束！得分：' + score);
+                    return;
+                }
+            }
+
+            if (!checkCollision(currentPiece.shape, currentPiece.x, currentPiece.y + 1)) {
+                currentPiece.y++;
+            } else {
+                fixPiece();
+                clearLines();
+                currentPiece = null;
+            }
+
+            updateDisplay();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!currentPiece) return;
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    if (!checkCollision(currentPiece.shape, currentPiece.x - 1, currentPiece.y)) {
+                        currentPiece.x--;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (!checkCollision(currentPiece.shape, currentPiece.x + 1, currentPiece.y)) {
+                        currentPiece.x++;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (!checkCollision(currentPiece.shape, currentPiece.x, currentPiece.y + 1)) {
+                        currentPiece.y++;
+                    }
+                    break;
+                case 'ArrowUp':
+                    const rotated = currentPiece.shape[0].map((_, i) => 
+                        currentPiece.shape.map(row => row[i]).reverse()
+                    );
+                    if (!checkCollision(rotated, currentPiece.x, currentPiece.y)) {
+                        currentPiece.shape = rotated;
+                    }
+                    break;
+            }
+            updateDisplay();
+        });
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            clearInterval(gameInterval);
+            score = 0;
+            document.getElementById('score').textContent = '0';
+            initBoard();
+            currentPiece = null;
+            gameInterval = setInterval(gameLoop, 1000);
+        });
+
+        initBoard();
+    </script>
+</body>
+</html>

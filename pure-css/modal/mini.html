@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Modal</title>
+    <style>
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .modal:target {
+        display: block;
+      }
+      .modal-content {
+        background: white;
+        padding: 20px;
+        margin: 100px auto;
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#open-modal">打开弹窗</a>
+    <div id="open-modal" class="modal">
+      <div class="modal-content">
+        <p>这是弹窗</p>
+        <a href="#">关闭</a>
+      </div>
+    </div>
+  </body>
+</html>

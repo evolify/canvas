@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tokens</title>
+    <style>
+      .item{
+        display: flex;
+        align-items: center;
+        font-size: 18px;
+      }
+      .item .col{
+        width: 0;
+        flex-grow: 1;
+      }
+      .change{
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="list"></div>
+    </div>
+    <script>
+      // let symbols = `["ANCBUSD", "LUNABUSD", "USTBUSD"]`
+      let symbols = ["ANCBUSD"]
+      symbols = `[${symbols.map(t=>`"${t}"`).join(",")}]`
+      console.log(symbols)
+      const baseURL = "https://api.binance.com"
+      const list = document.querySelector(".list")
+
+      function url(path) {
+        return baseURL + path
+      }
+
+      async function getPrice() {
+        const res = await fetch(url(`/api/v3/ticker/24hr?symbols=${symbols}`))
+        return res.json()
+      }
+
+      async function load() {
+        const data = await getPrice()
+        list.innerHTML = data.map(
+          t => `
+          <div class="item">
+            <div class="symbol col">${t.symbol}</div>
+            <div class="price col">${t.askPrice}</div>
+            <div class="change col">${t.priceChangePercent}%</div>
+          </div>
+        `
+        )
+      }
+
+      load()
+    </script>
+  </body>
+</html>

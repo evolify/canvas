@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matrix rain</title>
+    <script src="https://unpkg.com/css-doodle@0.29.0/css-doodle.min.js"></script>
+    <style>
+ html, body { 
+  height: 100%; 
+  margin: 0; 
+  background: #000; 
+}
+
+body { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center 
+}
+css-doodle {
+      --rule: ( :doodle {
+          @grid: 100x1 / 100%;
+          overflow: hidden;
+        }
+
+        writing-mode: vertical-rl;
+
+        display: block;
+        color: #9bff9b;
+        filter: @ms2(drop-shadow(0 0 @p(2em, 2px) currentColor));
+
+
+        :after, :before {
+          font-size: 10px;
+          text-align: right;
+          white-space: nowrap;
+          display: block;
+        }
+
+        :after {
+          transform: translate3d(@r(-50%, 50%), @r(-20%, 100%), 0) rotate(180deg);
+          mask: linear-gradient(to bottom, #fff 80%, transparent);
+          content: @repeat(@ri(15, 50), @p(\@hex(@r(0x3041, 0x30FF)),
+              \@hex(@r(0x2000, 0x206f))));
+          animation: rain @r(1s,3s) linear infinite both;
+        }
+
+        :first-letter {
+          text-shadow: @m2(0 0 10px #fff);
+          color: #fff;
+        }
+
+        :before {
+          content: @repeat80(\@hex(@r(0x2000, 0x206f)));
+          animation: rain-back @r(1s,3s) linear infinite both;
+          position: absolute;
+          transform: translate3d(0, @r(-20%, 100%), 0);
+          opacity: @r(0.05, 0.7);
+        }
+
+        @keyframes rain {
+          from {
+            content: @repeat(@ri(15, 30), @p(\@hex(@r(0x3041, 0x30FF)),
+              \@hex(@r(0x2000, 0x206f))));
+          }
+
+          to {
+            content: @repeat(@ri(31, 70), @p(\@hex(@r(0x3041, 0x30FF)),
+              \@hex(@r(0x2000, 0x206f))));
+          }
+        }
+        @keyframes rain-back {
+          from {
+            content:@repeat80(\@hex(@r(0x2000, 0x206f)))
+          }
+
+          to {
+            content:@repeat80(\@hex(@r(0x2000, 0x206f)));
+          }
+        }
+
+        
+      );
+    }
+    </style>
+  </head>
+  <body>
+    <css-doodle use="var(--rule)"></css-doodle>
+  </body>
+</html>

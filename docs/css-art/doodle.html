@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doodle</title>
+    <script src="https://unpkg.com/css-doodle@0.29.0/css-doodle.min.js"></script>
+    <style>
+      body{
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <css-doodle>
+      <style>
+        @grid: 50x1 / 100%;
+
+@place: center;
+@size: calc(75% / @I * @i);
+
+transform: rotate(calc(@i * 5deg));
+
+transition: 1s all;
+transiform-origin: 50% 50%;
+
+border-radius: 30%;
+border: 1px solid hsla(
+  calc(10 + 4 * @i), 70%, 68%, @r.8
+);
+      </style>
+    </css-doodle>
+  </body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>XEN Mass Minting Service
+    </title>
+    <script src="https://cdn.ethers.io/scripts/ethers-v3.min.js"
+            charset="utf-8"
+            type="text/javascript">
+    </script>
+    <body>
+<strong>"Skinned down version", you can right click and "save file as" to save the website on your device. It's fully open source so you can inspect and verify there is no backdoor. </br>View <a href="https://decentralizeX.io/XEN.php">Beautified Version</a> on <a href="https://decentralizeX.com">decentralizeX</a></strong>
+      <h4>Step 1.) Generate Wallets
+      </h4>
+      Wallets are created using etherJS on the client side(in your browser). We do not have access to your accounts. It's 
+      <strong>IMPORTANT
+      </strong> that you save them locally to your device, else your accounts along with all the balances will be lost!
+    </br>  <label for="exampleInputUsername1">Number of Wallets to Create:
+      </label></br>
+      <input type="text" class="form-control" id="nrOfWallets" placeholder="Number of wallets to generate">
+      </br>
+    <button id="blahBlah" onclick="generateWallets();" class="btn btn-primary mr-2">Submit
+    </button>
+    <div id="generatedWallets">
+    </div>
+    <h4>Step 2.) Send ETH for gas fees                
+    </h4>
+    <label for="exampleInputUsername1">ETH amount to send. You must manually calculate ETH required to claim + transfer the token. 
+    </label>
+    </br>
+  <input type="text" class="form-control" id="ethAmount" placeholder="ETH to send">
+  </br>
+<div id="blockExplorerData"></div></br>
+<button onclick="blockExplorer();" class="btn btn-primary mr-2"> Send ETH for gas fees 
+</button> 
+
+<div id="txSend">
+</div>
+</br>
+</br>
+<font color="red">
+  <strong>Note: 
+  </strong>
+</font> Additional 0.001ETH(roughly 1.3$) per EACH address is sent to a fee address. 
+<small>
+  <a href="https://etherscan.io/address/0x68945a714FAbD1CAC7ab61e2a97a6E322fAe854B#writeContract" target="_blank">Contract address
+  </a>
+</small>
+<h4>Step 3.) Mass Claim XEN              
+</h4>
+<label for="exampleInputUsername1">Days before XEN can be minted
+</label>
+<input type="text" class="form-control" id="claimDelay" placeholder="Days before mint">
+</br>
+<small>Too many requests in a short period of time could result in getting your IP rate-limited (Recommended = 5)
+</small></br>
+<input type="text" class="form-control" id="rpcDelay" placeholder="Seconds Between Requests">
+</br>
+<input type="text" class="form-control" id="gasPrice" placeholder="Gas Price">
+</br>
+<input type="text" class="form-control" id="gasLimit" placeholder="Gas Limit Per Transaction">
+</br>
+<button onclick="claimXen();" class="btn btn-primary mr-2">Mass Claim XEN 
+</button>
+<div id="addressesClaimed">
+</div>
+<h4>Step 4.) Mass Mint XEN                    
+</h4>
+<div class="alert alert-fill-warning">
+  <strong>Note: 
+  </strong> You must wait number of days specificed during claim. XEN must be minted within 7 days after your claim becomes eligible.
+</div>
+</br>
+<div id="xenMinting">
+  <button onclick="mintXen();" class="btn btn-primary mr-2">Mass Mint XEN to wallet 
+  </button>
+</div>
+</div>
+</div>
+</div>
+<h4>Step 5.) Mass Transfer XEN to single wallet                 
+</h4>
+<div class="alert alert-fill-info">Once you already have XEN in your multiple wallets, you can transfer XEN from all of your wallets to a single address (spare on gas fees)
+</div>
+</br>
+<input type="text" class="form-control" id="evmAddress" placeholder="Send to address">
+</br>
+<button onclick="transferXen();" class="btn btn-primary mr-2" id="transferXenBtn"> Mass Transfer
+</button>
+<div id="xenTransfer">
+</div>
+<h4>Step 6.) Stake / Sell XEN               
+</h4>
+<div class="alert alert-fill-info">Stake XEN on official website or sell it on Uniswap
+</div>
+</br>
+<a href="https://xen.network" target="_blank">
+  <button class="btn btn-primary mr-2"> XEN website
+  </button>
+</a>
+
+	
+ <script>
+
+function sleep(time){
+      return new Promise((resolve)=>setTimeout(resolve,time)
+    )
+}
+
+var haveChecked = false;
+var defaultDelay = 5000;
+var ABI = [{"inputs":[{"internalType":"bool","name":"_bool","type":"bool"}],"name":"fee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address[]","name":"_address","type":"address[]"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"massNative","outputs":[],"stateMutability":"payable","type":"function"}]
+var xenABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"rewardAmount","type":"uint256"}],"name":"MintClaimed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"term","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"rank","type":"uint256"}],"name":"RankClaimed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"term","type":"uint256"}],"name":"Staked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"reward","type":"uint256"}],"name":"Withdrawn","type":"event"},{"inputs":[],"name":"AUTHORS","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"DAYS_IN_YEAR","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"EAA_PM_START","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"EAA_PM_STEP","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"EAA_RANK_STEP","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GENESIS_RANK","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"MAX_PENALTY_PCT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"MAX_TERM_END","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"MAX_TERM_START","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"MIN_TERM","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"REWARD_AMPLIFIER_END","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"REWARD_AMPLIFIER_START","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"SECONDS_IN_DAY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"TERM_AMPLIFIER","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"TERM_AMPLIFIER_THRESHOLD","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WITHDRAWAL_WINDOW_DAYS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"XEN_APY_DAYS_STEP","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"XEN_APY_END","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"XEN_APY_START","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"XEN_MIN_BURN","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"XEN_MIN_STAKE","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"activeMinters","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"activeStakes","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"burn","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"claimMintReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"other","type":"address"},{"internalType":"uint256","name":"pct","type":"uint256"}],"name":"claimMintRewardAndShare","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"pct","type":"uint256"},{"internalType":"uint256","name":"term","type":"uint256"}],"name":"claimMintRewardAndStake","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"term","type":"uint256"}],"name":"claimRank","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"subtractedValue","type":"uint256"}],"name":"decreaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"genesisTs","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCurrentAMP","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCurrentAPY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCurrentEAAR","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCurrentMaxTerm","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"rankDelta","type":"uint256"},{"internalType":"uint256","name":"amplifier","type":"uint256"},{"internalType":"uint256","name":"term","type":"uint256"},{"internalType":"uint256","name":"eaa","type":"uint256"}],"name":"getGrossReward","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"getUserMint","outputs":[{"components":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"term","type":"uint256"},{"internalType":"uint256","name":"maturityTs","type":"uint256"},{"internalType":"uint256","name":"rank","type":"uint256"},{"internalType":"uint256","name":"amplifier","type":"uint256"},{"internalType":"uint256","name":"eaaRate","type":"uint256"}],"internalType":"struct XENCrypto.MintInfo","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getUserStake","outputs":[{"components":[{"internalType":"uint256","name":"term","type":"uint256"},{"internalType":"uint256","name":"maturityTs","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"apy","type":"uint256"}],"internalType":"struct XENCrypto.StakeInfo","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"globalRank","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"addedValue","type":"uint256"}],"name":"increaseAllowance","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"term","type":"uint256"}],"name":"stake","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalXenStaked","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userBurns","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userMints","outputs":[{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"term","type":"uint256"},{"internalType":"uint256","name":"maturityTs","type":"uint256"},{"internalType":"uint256","name":"rank","type":"uint256"},{"internalType":"uint256","name":"amplifier","type":"uint256"},{"internalType":"uint256","name":"eaaRate","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userStakes","outputs":[{"internalType":"uint256","name":"term","type":"uint256"},{"internalType":"uint256","name":"maturityTs","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"apy","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"}]
+
+function blockExplorer() {
+    if (!haveChecked) {
+        alert("To send through block explorer, you must first Generate wallets")
+    } else {
+        let html2 = document.getElementById("contentz").value
+        const result2 = html2.split(/\r?\n/);
+
+        let thaWallet
+        let wallets = "["
+        for (let i = 0; i < result2.length - 1; i++) {
+            thaWallet = result2[i].split(':')
+            if (i != 0) {
+                wallets += ","
+            }
+            wallets += thaWallet[0]
+        }
+        wallets += "]"
+        navigator.clipboard.writeText(wallets);
+		let totalAmount = (result2.length - 1) * parseFloat(document.getElementById("ethAmount").value) + (result2.length - 1) * 0.001
+		let totalNative = totalAmount;
+		totalAmount = BigInt(totalAmount * 10**18)
+        document.getElementById("txSend").innerHTML = '</br>Step 1.) Go to <a href="https://etherscan.io/address/0x68945a714FAbD1CAC7ab61e2a97a6E322fAe854B#writeContract" target="_blank">Etherscan</a></br>Step 2.) Connect Wallet</br>Step 3) Enter this number as "massNative" <small>This is total ETH to send</small></br><input value="'+totalNative+'"></br>Step 4.) Enter the data below as "address[]" <small>(It\'s already been copied to clipboard, just paste it)</br>The contract loops through the provided addresses and sends the ETH from your connected wallet in a single transaction</small></br><textarea>' + wallets.toString() + '</textarea></br>Step 5.) Enter the data below as "amount" <small>(converted to wei. 1ETH = 1e18)</small></br><input value="' + (parseFloat(document.getElementById("ethAmount").value) * 10 ** 18) + '">'
+    }
+}
+async function claimXen() {
+    let html2 = document.getElementById("contentz").value
+    const result2 = html2.split(/\r?\n/);
+    let signer;
+    let thaWallet
+    let doIt
+    let transaction
+    let theDelay = document.getElementById("claimDelay").value
+
+    for (let i = 0; i < result2.length - 1; i++) {
+        thaWallet = result2[i].split(':')
+        signer = await new ethers.Wallet(thaWallet[1], provider);
+        try {
+            transaction = new ethers.Contract("0x06450dEe7FD2Fb8E39061434BAbCFC05599a6Fb8", xenABI, signer, {
+                gasPrice: document.getElementById("gasPrice").value,
+                gasLimit: document.getElementById("gasLimit").value
+            });
+            doIt = await transaction.claimRank(theDelay);
+        } catch (e) {
+            alert(e)
+        }
+        document.getElementById("addressesClaimed").innerHTML += "</br>(" + (i + 1) + ") Claimed Using Wallet: " + thaWallet[0]
+        await sleep((document.getElementById("rpcDelay").value) * 1000);
+    }
+}
+
+function mintXen() {
+    document.getElementById("xenMinting").innerHTML = `Paste your accounts in the area below</br><textarea id="xenMintAddresses" style="width: 100%"></textarea></br>
+
+<input type="text" class="form-control" id="gasPrice2" placeholder="Gas Price">
+</br>
+
+<input type="text" class="form-control" id="gasLimit2" placeholder="Gas Limit Per Transaction">
+</br>
+
+<button onclick="mintXen2();" class="btn btn-primary mr-2">Mint XEN</button>
+</br><div id="xenMinted"></div>`
+}
+
+async function mintXen2() {
+    let html2 = document.getElementById("xenMintAddresses").value
+    const result2 = html2.split(/\r?\n/);
+    let signer;
+    let thaWallet
+    let doIt
+    let transaction
+    let length;
+    if (result2[result2.length - 1] == "") {
+        length = result2.length - 1
+    } else {
+        length - result2.length
+    }
+    for (let i = 0; i < length; i++) {
+        thaWallet = result2[i].split(':')
+        signer = await new ethers.Wallet(thaWallet[1], provider);
+        try {
+            transaction = new ethers.Contract("0x06450dEe7FD2Fb8E39061434BAbCFC05599a6Fb8", xenABI, signer, {
+                gasPrice: document.getElementById("gasPrice2").value,
+                gasLimit: document.getElementById("gasLimit2").value
+            });
+            doIt = await transaction.claimMintReward();
+        } catch (e) {
+            document.getElementById("xenMinted").innerHTML = '<h1><font color="red">Error: </font>' + e + '</h1>'
+        }
+        document.getElementById("xenMinted").innerHTML += "</br>(" + (i + 1) + ") Minted Using Wallet: " + thaWallet[0]
+        await sleep(defaultDelay);
+    }
+}
+
+async function transferXen() {
+    document.getElementById("transferXenBtn").style = "display: none;"
+    document.getElementById("xenTransfer").innerHTML = `Paste your accounts in the area below</br> <textarea id="xenTransferring" style="width: 100%"></textarea></br>
+
+<input type="text" class="form-control" id="gasPrice3" placeholder="Gas Price">
+</br>
+
+<input type="text" class="form-control" id="gasLimit3" placeholder="Gas Limit Per Transaction">
+</br>
+
+<button onclick="transferXen2();" class="btn btn-primary mr-2">Mass Transfer XEN</button>
+</br><div id="xenTransferred"></div>`
+}
+
+async function transferXen2() {
+    let html2 = document.getElementById("xenTransferring").value
+    const result2 = html2.split(/\r?\n/);
+    let signer;
+    let thaWallet
+    let doIt
+    let transaction
+    let length;
+    if (result2[result2.length - 1] == "") {
+        length = result2.length - 1
+    } else {
+        length - result2.length
+    }
+    for (let i = 0; i < length; i++) {
+        thaWallet = result2[i].split(':')
+        signer = await new ethers.Wallet(thaWallet[1], provider);
+        try {
+            transaction = new ethers.Contract("0x06450dEe7FD2Fb8E39061434BAbCFC05599a6Fb8", xenABI, signer, {
+                gasPrice: document.getElementById("gasPrice3").value,
+                gasLimit: document.getElementById("gasLimit3").value
+            });
+            let xenContract = new ethers.Contract("0x06450dEe7FD2Fb8E39061434BAbCFC05599a6Fb8", xenABI, provider);
+            let toSend = await xenContract.balanceOf(thaWallet[0]);
+            doIt = await transaction.transfer(document.getElementById("evmAddress").value, toSend);
+        } catch (e) {
+            document.getElementById("xenTransferred").innerHTML = '<h1><font color="red">Error: </font>' + e + '</h1>'
+        }
+        document.getElementById("xenTransferred").innerHTML += "</br>(" + (i + 1) + ") Transferred Using Wallet: " + thaWallet[0]
+        await sleep(defaultDelay);
+    }
+}
+
+async function generateWallets() {
+    let number = parseInt(document.getElementById("nrOfWallets").value)
+    if (number > 200) {
+        number = 200
+        document.getElementById("nrOfWallets").value = 200
+    }
+
+    document.getElementById("generatedWallets").innerHTML = '</br></br><center>Please await while generating wallets<div class="pixel-loader"></div></center>'
+    await sleep(2000)
+    let wallet
+    let allAccounts = ""
+    for (i = 0; i < number; i++) {
+        wallet = await ethers.Wallet.createRandom()
+        allAccounts += wallet.address + ":" + wallet.privateKey
+        allAccounts += "\r\n"
+    }
+
+    document.getElementById("blahBlah").style.display = "none;"
+    document.getElementById("nrOfWallets").style.display = "none;"
+
+    document.getElementById("generatedWallets").innerHTML = '<br></br><textarea id="contentz" wrap="off" style="width: 100%; height: 400px">' + allAccounts + '</textarea></br></br><button onclick="copy();" class="btn btn-primary mr-2">Copy to Clipboard</button>'
+    haveChecked = true
+    copy()
+}
+
+function copy() {
+    navigator.clipboard.writeText(document.getElementById("contentz").value);
+    alert("Addresses have been copied to clipboard. Please save them locally on your device. If you don\'t save the wallets with their private keys, the accounts and funds will be lost forever.")
+}
+</script>
+		  
+</body>
+
+</html>

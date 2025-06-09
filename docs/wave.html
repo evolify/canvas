@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wave</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .wave-wrapper {
+        width: 100%;
+      }
+      .wave1 {
+        fill: #64B5F680;
+        animation: wave 3s linear infinite;
+      }
+      .wave2 {
+        fill: #64B5F6;
+        animation: wave 2s linear infinite;
+      }
+      @keyframes wave {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-100%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg
+      class="wave-wrapper"
+      viewBox="0 0 200 100"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <path
+          id="wave"
+          d="M0 100 V70 Q50 50 100 70 Q150 90 200 70 Q250 50 300 70 Q350 90 400 70 V100 z"
+        />
+      </defs>
+      <use class="wave1" xlink:href="#wave" x="0" y="-10"></use>
+      <use class="wave2" xlink:href="#wave" x="0" y="0"></use>
+    </svg>
+  </body>
+</html>
