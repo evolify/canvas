@@ -3,10 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <style>
+    body {
+      display: flex;
+      justify-content: center;
+    }
     .star-rating {
-      direction: rtl;
+      margin-top: 100px;
       unicode-bidi: bidi-override;
       font-size: 2em;
+      display: flex;
+      flex-direction: row-reverse;
     }
     .star-rating input {
       display: none;

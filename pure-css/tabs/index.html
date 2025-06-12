@@ -1,227 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tabs</title>
     <style>
-      /*
- CSS for the main interaction
-*/
-      .tabset > input[type="radio"] {
-        position: absolute;
-        left: -200vw;
+      :root {
+        background-color: #fff;
+        --primary: #06c;
+        --card-bg: #eee;
       }
-
-      .tabset .tab-panel {
+      input[type="radio"] {
         display: none;
       }
-
-      .tabset
-        > input:first-child:checked
-        ~ .tab-panels
-        > .tab-panel:first-child,
-      .tabset
-        > input:nth-child(3):checked
-        ~ .tab-panels
-        > .tab-panel:nth-child(2),
-      .tabset
-        > input:nth-child(5):checked
-        ~ .tab-panels
-        > .tab-panel:nth-child(3),
-      .tabset
-        > input:nth-child(7):checked
-        ~ .tab-panels
-        > .tab-panel:nth-child(4),
-      .tabset
-        > input:nth-child(9):checked
-        ~ .tab-panels
-        > .tab-panel:nth-child(5),
-      .tabset
-        > input:nth-child(11):checked
-        ~ .tab-panels
-        > .tab-panel:nth-child(6) {
-        display: block;
-      }
-
-      /*
- Styling
-*/
-      body {
-        font: 16px/1.5em "Overpass", "Open Sans", Helvetica, sans-serif;
-        color: #333;
-        font-weight: 300;
-      }
-
-      .tabset > label {
-        position: relative;
+      .tab {
         display: inline-block;
-        padding: 15px 15px 25px;
-        border: 1px solid transparent;
-        border-bottom: 0;
+        padding: 10px 20px;
         cursor: pointer;
-        font-weight: 600;
-      }
-
-      .tabset > label::after {
-        content: "";
-        position: absolute;
-        left: 15px;
-        bottom: 10px;
-        width: 22px;
-        height: 4px;
-        background: #8d8d8d;
-      }
-
-      input:focus-visible + label {
-        outline: 2px solid rgba(0, 102, 204, 1);
-        border-radius: 3px;
-      }
-
-      .tabset > label:hover,
-      .tabset > input:focus + label,
-      .tabset > input:checked + label {
-        color: #06c;
-      }
-
-      .tabset > label:hover::after,
-      .tabset > input:focus + label::after,
-      .tabset > input:checked + label::after {
-        background: #06c;
-      }
-
-      .tabset > input:checked + label {
-        border-color: #ccc;
-        border-bottom: 1px solid #fff;
+        border-radius: 4px 4px 0 0;
         margin-bottom: -1px;
+        position: relative;
       }
-
       .tab-panel {
-        padding: 30px 0;
-        border-top: 1px solid #ccc;
+        display: none;
+        padding: 10px;
+        background: var(--card-bg);
+        border-top: 1px solid var(--primary);
+        height: 300px;
       }
-
-      /*
- Demo purposes only
-*/
-      *,
-      *:before,
-      *:after {
-        box-sizing: border-box;
+      input:checked + label {
+        color: var(--primary);
+        background-color: var(--card-bg);
+        border: 1px solid var(--primary);
+        border-bottom: 1px solid var(--card-bg);
       }
-
-      body {
-        padding: 30px;
-      }
-
-      .tabset {
-        max-width: 65em;
+      #tab1:checked ~ #tab-panel1,
+      #tab2:checked ~ #tab-panel2,
+      #tab3:checked ~ #tab-panel3 {
+        display: block;
       }
     </style>
   </head>
   <body>
-    <!-- 
-  
-  Radio version of tabs.
-
-  Requirements:
-  - not rely on specific IDs for CSS (the CSS shouldn't need to know specific IDs)
-  - flexible for any number of unkown tabs [2-6]
-  - accessible
-
-  Caveats:
-  - since these are checkboxes the tabs not tab-able, need to use arrow keys
-
-  Also worth reading:
-  http://simplyaccessible.com/article/danger-aria-tabs/
--->
-
-    <div class="tabset">
-      <!-- Tab 1 -->
-      <input
-        type="radio"
-        name="tabset"
-        id="tab1"
-        aria-controls="marzen"
-        checked
-      />
-      <label for="tab1">Märzen</label>
-      <!-- Tab 2 -->
-      <input type="radio" name="tabset" id="tab2" aria-controls="rauchbier" />
-      <label for="tab2">Rauchbier</label>
-      <!-- Tab 3 -->
-      <input type="radio" name="tabset" id="tab3" aria-controls="dunkles" />
-      <label for="tab3">Dunkles Bock</label>
-
-      <div class="tab-panels">
-        <section id="marzen" class="tab-panel">
-          <h2>6A. Märzen</h2>
-          <p>
-            <strong>Overall Impression:</strong> An elegant, malty German amber
-            lager with a clean, rich, toasty and bready malt flavor, restrained
-            bitterness, and a dry finish that encourages another drink. The
-            overall malt impression is soft, elegant, and complex, with a rich
-            aftertaste that is never cloying or heavy.
-          </p>
-          <p>
-            <strong>History:</strong> As the name suggests, brewed as a stronger
-            “March beer” in March and lagered in cold caves over the summer.
-            Modern versions trace back to the lager developed by Spaten in 1841,
-            contemporaneous to the development of Vienna lager. However, the
-            Märzen name is much older than 1841; the early ones were dark brown,
-            and in Austria the name implied a strength band (14 °P) rather than
-            a style. The German amber lager version (in the Viennese style of
-            the time) was first served at Oktoberfest in 1872, a tradition that
-            lasted until 1990 when the golden Festbier was adopted as the
-            standard festival beer.
-          </p>
-        </section>
-        <section id="rauchbier" class="tab-panel">
-          <h2>6B. Rauchbier</h2>
-          <p>
-            <strong>Overall Impression:</strong> An elegant, malty German amber
-            lager with a balanced, complementary beechwood smoke character.
-            Toasty-rich malt in aroma and flavor, restrained bitterness, low to
-            high smoke flavor, clean fermentation profile, and an attenuated
-            finish are characteristic.
-          </p>
-          <p>
-            <strong>History:</strong> A historical specialty of the city of
-            Bamberg, in the Franconian region of Bavaria in Germany.
-            Beechwood-smoked malt is used to make a Märzen-style amber lager.
-            The smoke character of the malt varies by maltster; some breweries
-            produce their own smoked malt (rauchmalz).
-          </p>
-        </section>
-        <section id="dunkles" class="tab-panel">
-          <h2>6C. Dunkles Bock</h2>
-          <p>
-            <strong>Overall Impression:</strong> A dark, strong, malty German
-            lager beer that emphasizes the malty-rich and somewhat toasty
-            qualities of continental malts without being sweet in the finish.
-          </p>
-          <p>
-            <strong>History:</strong> Originated in the Northern German city of
-            Einbeck, which was a brewing center and popular exporter in the days
-            of the Hanseatic League (14th to 17th century). Recreated in Munich
-            starting in the 17th century. The name “bock” is based on a
-            corruption of the name “Einbeck” in the Bavarian dialect, and was
-            thus only used after the beer came to Munich. “Bock” also means
-            “Ram” in German, and is often used in logos and advertisements.
-          </p>
-        </section>
-      </div>
+    <input type="radio" name="tabs" id="tab1" checked />
+    <label class="tab" for="tab1">React</label>
+    <input type="radio" name="tabs" id="tab2" />
+    <label class="tab" for="tab2">Vue</label>
+    <input type="radio" name="tabs" id="tab3" />
+    <label class="tab" for="tab3">SolidJS</label>
+    <div id="tab-panel1" class="tab-panel">
+      <h3>🔷 React</h3>
+      <ul>
+        <li><strong>作者</strong>：Meta（Facebook）</li>
+        <li><strong>初始发布</strong>：2013</li>
+        <li>
+          <strong>核心理念</strong>：声明式 UI + 虚拟 DOM + 函数组件 + Hooks
+        </li>
+        <li>
+          <strong>特点</strong>：
+          <ul>
+            <li>使用 JSX 编写组件</li>
+            <li>
+              通过 <code>useState</code>、<code>useEffect</code> 等 Hook
+              管理状态
+            </li>
+            <li>强大生态系统（如 Next.js）</li>
+          </ul>
+        </li>
+      </ul>
     </div>
-
-    <p>
-      <small
-        >Source:
-        <cite
-          ><a href="https://www.bjcp.org/stylecenter.php"
-            >BJCP Style Guidelines</a
-          ></cite
-        ></small
-      >
-    </p>
+    <div id="tab-panel2" class="tab-panel">
+      <h3>🟢 Vue</h3>
+      <ul>
+        <li><strong>作者</strong>：尤雨溪（Evan You）</li>
+        <li><strong>初始发布</strong>：2014</li>
+        <li><strong>核心理念</strong>：响应式数据 + 模板语法 + 组件系统</li>
+        <li>
+          <strong>特点</strong>：
+          <ul>
+            <li>易上手，文档完善</li>
+            <li>支持 Options API 和 Composition API</li>
+            <li>拥有官方全家桶（Vue Router、Pinia、Nuxt 等）</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div id="tab-panel3" class="tab-panel">
+      <h3>🟡 SolidJS</h3>
+      <ul>
+        <li><strong>作者</strong>：Ryan Carniato</li>
+        <li><strong>初始发布</strong>：2020</li>
+        <li>
+          <strong>核心理念</strong>：编译时优化 + 无虚拟 DOM + 细粒度响应式
+        </li>
+        <li>
+          <strong>特点</strong>：
+          <ul>
+            <li>语法类似 React（JSX + Signals）</li>
+            <li>性能极高，接近原生 DOM 操作</li>
+            <li>没有 Virtual DOM，运行时开销极低</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
   </body>
 </html>

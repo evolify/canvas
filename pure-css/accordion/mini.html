@@ -1,23 +1,44 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    .accordion input { display: none; }
-    .accordion label { display: block; background: #ccc; padding: 10px; cursor: pointer; }
-    .accordion div { display: none; padding: 10px; background: #eee; }
-    .accordion input:checked + label + div { display: block; }
-  </style>
-</head>
-<body>
-  <div class="accordion">
-    <input type="checkbox" id="section1">
-    <label for="section1">部分 1</label>
-    <div>部分 1 内容</div>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      .accordion input {
+        display: none;
+      }
+      .accordion label {
+        display: block;
+        background: #ccc;
+        padding: 10px;
+        cursor: pointer;
+      }
+      .accordion .content {
+        display: none;
+        padding: 10px;
+        background: #eee;
+      }
+      .accordion input:checked + .content{
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="accordion">
+      <label for="section1">部分 1</label>
+      <input type="checkbox" id="section1" />
+      <div class="content">部分 1 内容</div>
 
-    <input type="checkbox" id="section2">
-    <label for="section2">部分 2</label>
-    <div>部分 2 内容</div>
-  </div>
-</body>
+      <label for="section2">部分 2</label>
+      <input type="checkbox" id="section2" />
+      <div class="content">部分 2 内容</div>
+    </div>
+
+    <hr style="margin: 50px 0;" />
+    <div class="label-demo">
+      <label for="ipt-name">Input name</label><br/>
+      <label for="ipt-age">Input age</label><br/>
+      <input type="input" id="ipt-name" placeholder="Please input name" /><br/>
+      <input type="input" id="ipt-age" placeholder="Please input age" />
+    </div>
+  </body>
 </html>
